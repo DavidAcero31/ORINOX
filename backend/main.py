@@ -581,58 +581,19 @@ indícalo claramente.
 """
 
 
-    # ======================================
-    # GEMINI
-    # ======================================
+    # ==========================================
+    # LLAMADA A GEMINI
+    # ==========================================
 
-    try:
-
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=instrucciones,
-            ),
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=instrucciones
         )
-
-        respuesta = response.text
-
-
-    except Exception as e:
-
-        db.rollback()
-
-        return {
-            "respuesta": (
-                "Lo siento, ocurrió un problema "
-                "al consultar LLANO IA."
-            ),
-            "error": str(e),
-            "modulo": request.modulo,
-        }
-
-
-    # ======================================
-    # GUARDAR RESPUESTA DE IA
-    # ======================================
-
-    mensaje_ia = Message(
-        conversacion_id=conversacion.id,
-        rol="assistant",
-        contenido=respuesta,
     )
 
-    db.add(mensaje_ia)
-
-    db.commit()
-
-
-    # ======================================
-    # RESPUESTA
-    # ======================================
-
     return {
-        "respuesta": respuesta,
-        "modulo": request.modulo,
-        "conversacion_id": conversacion.id,
+        "respuesta": response.text,
+        "modulo": request.modulo
     }

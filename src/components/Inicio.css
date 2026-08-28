@@ -1,0 +1,166 @@
+.inicio-container {
+  flex: 1;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #080b0a;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.inicio-content {
+  width: 100%;
+  /* max-width: 950px; */
+  text-align: center;
+}
+
+.bot-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 22px;
+
+  background: rgba(42, 211, 137, 0.08);
+  border: 1px solid rgba(42, 211, 137, 0.25);
+
+  font-size: 40px;
+}
+
+.inicio-content h1 {
+  margin: 0;
+
+  font-size: 42px;
+  font-weight: 700;
+
+  letter-spacing: -1px;
+
+  color: #f1f5f3;
+}
+
+.inicio-content h2 {
+  margin-top: 10px;
+
+  font-size: 22px;
+  font-weight: 500;
+
+  color: #39d98a;
+}
+
+.inicio-description {
+  max-width: 680px;
+
+  margin: 20px auto;
+
+  line-height: 1.7;
+
+  font-size: 15px;
+
+  color: #8d9994;
+}
+
+.inicio-question {
+  margin-top: 35px;
+  margin-bottom: 18px;
+
+  color: #d8dfdc;
+
+  font-size: 15px;
+}
+
+.module-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 16px;
+
+  text-align: left;
+}
+
+.module-card {
+  position: relative;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  padding: 22px;
+
+  min-height: 150px;
+
+  background: #0d1210;
+
+  border: 1px solid #1d2823;
+
+  border-radius: 16px;
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-3px);
+
+  background: #111914;
+
+  border-color: #2edb8b;
+}
+
+.module-icon {
+  font-size: 28px;
+
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: rgba(42, 211, 137, 0.08);
+}
+
+.module-card h3 {
+  margin: 2px 0 8px;
+
+  font-size: 16px;
+}
+
+.module-card p {
+  margin: 0;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+
+  color: #89958f;
+}
+
+.arrow {
+  position: absolute;
+
+  right: 18px;
+  bottom: 17px;
+
+  color: #39d98a;
+
+  font-size: 20px;
+}
