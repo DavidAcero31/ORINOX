@@ -138,19 +138,23 @@ def chat(request: ChatRequest):
     {request.mensaje}
     """
 
-    # ==========================================
-    # LLAMADA A GEMINI
-    # ==========================================
-
-    response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=instrucciones
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.6-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=instrucciones
+            )
         )
-    )
 
-    return {
-        "respuesta": response.text,
-        "modulo": request.modulo
-    }
+        return {
+            "respuesta": response.text,
+            "modulo": request.modulo
+        }
+
+    except Exception as e:
+        return {
+            "respuesta": "Lo siento, ocurrió un problema al consultar LLANO IA.",
+            "error": str(e),
+            "modulo": request.modulo
+        }
