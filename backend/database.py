@@ -6,7 +6,7 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 load_dotenv("clave-agent.env")
 
-DATABASE_URL = "postgresql+psycopg://postgres:HaroldSt@localhost:5432/llano_ia"
+DATABASE_URL = "postgresql+psycopg://postgres:david3112@localhost:5433/llano_ia"
 
 
 engine = create_engine(
