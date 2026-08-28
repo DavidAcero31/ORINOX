@@ -30,10 +30,53 @@ dist/
 
 # ---------- Node / React / Vite ----------
 node_modules/
+# ============================================
+# LLANO IA - Git Ignore
+# ============================================
+
+# ---------- Variables de entorno ----------
+.env
+.env.*
+*.env
+!.env.example
+
+# Clave de OpenAI
+clave-agent.env
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# Distribución / paquetes
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---------- Node / React / Vite ----------
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Vite
+dist/
+
+# ---------- IDE / Editores ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---------- Sistema operativo ----------
 
 # Vite
 dist/

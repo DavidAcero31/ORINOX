@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import ReactMarkdown from "react-markdown";
 import { useState } from "react";
 import {
   MessageSquareText,
@@ -44,22 +45,29 @@ function ProductCard() {
         </svg>
       </div>
 
+
       <div className="product-info">
         <div className="product-name">{PRODUCT.name}</div>
+
 
         <div className="product-meta">
           Cantidad disponible: <strong>{PRODUCT.stock}</strong>
         </div>
 
+
         <div className="product-meta">
           Precio sugerido: <strong>{PRODUCT.price}</strong>
         </div>
 
+
         <div className="product-actions">
+          <button type="button" className="btn btn--primary">
           <button type="button" className="btn btn--primary">
             <RefreshCw size={14} />
             Actualizar inventario
           </button>
+
+          <button type="button" className="btn btn--ghost">
 
           <button type="button" className="btn btn--ghost">
             <History size={14} />
@@ -76,6 +84,7 @@ function MatchList() {
     <div className="match-card">
       <div className="match-title">Posibles Compradores (Matching)</div>
 
+
       <ul className="match-list">
         {MATCHES.map((m) => (
           <li className="match-row" key={m.name}>
@@ -88,8 +97,17 @@ function MatchList() {
               className="match-score"
               style={{ "--score": m.score }}
             >
+
+            <div
+              className="match-score"
+              style={{ "--score": m.score }}
+            >
               {m.score}%
             </div>
+
+            <button type="button" className="btn btn--outline btn--sm">
+              Contactar
+            </button>
 
             <button type="button" className="btn btn--outline btn--sm">
               Contactar
@@ -188,6 +206,10 @@ export default function ChatPanel({ reserveComposerSpace }) {
           HEADER
       ====================================================== */}
 
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
+
       <header className="chat-header">
         <div className="chat-header-title">
           <MessageSquareText size={16} />
@@ -210,13 +232,25 @@ export default function ChatPanel({ reserveComposerSpace }) {
           CHAT
       ====================================================== */}
 
+      {/* =====================================================
+          CHAT
+      ====================================================== */}
+
       <div className="chat-log">
 
         {/* -----------------------------------------------------
             MENSAJE INICIAL DEL USUARIO
         ------------------------------------------------------ */}
 
+
+        {/* -----------------------------------------------------
+            MENSAJE INICIAL DEL USUARIO
+        ------------------------------------------------------ */}
+
         <div className="msg msg--user">
+          <p>
+            ¿Con cuántos productores del Casanare estamos conectados hoy?
+          </p>
           <p>
             ¿Con cuántos productores del Casanare estamos conectados hoy?
           </p>
