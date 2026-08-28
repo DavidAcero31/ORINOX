@@ -183,6 +183,11 @@
   color: var(--text-1);
 }
 
+.foot-item--logout:hover {
+  background: rgba(230, 90, 90, 0.1);
+  color: #f28b8b;
+}
+
 @media (max-width: 860px) {
   .sidebar {
     display: none;

@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 const AuthContext = createContext(null);
 
 // Usuario de prueba mientras no hay backend
-const MOCK_USER = { username: "12345", password: "user123" };
+const MOCK_USER = { username: "12345", password: "user123", role: "usuario" };
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
 
   const login = (username, password) => {
     if (username === MOCK_USER.username && password === MOCK_USER.password) {
-      const userData = { username };
+      const userData = { username, role: MOCK_USER.role };
       setUser(userData);
       sessionStorage.setItem("orinox_user", JSON.stringify(userData));
       return { ok: true };
@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, role: user?.role ?? null, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

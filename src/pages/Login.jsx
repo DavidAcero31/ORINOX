@@ -27,8 +27,14 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <h1 className={styles.title}>Orinox</h1>
-        <p className={styles.subtitle}>Inicia sesión</p>
+        <div className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true">
+            <span className={styles.brandMarkSun} />
+          </span>
+          <span className={styles.brandName}>LLANO IA</span>
+        </div>
+
+        <p className={styles.subtitle}>Inicia sesión para continuar</p>
 
         {error && <div className={styles.error}>{error}</div>}
 
@@ -39,6 +45,7 @@ export default function Login() {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
             required
           />
         </label>
@@ -50,6 +57,7 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
             required
           />
         </label>
@@ -57,6 +65,8 @@ export default function Login() {
         <button className={styles.button} type="submit">
           Entrar
         </button>
+
+        <p className={styles.hint}>Usuario de prueba: 12345 / user123</p>
       </form>
     </div>
   );
