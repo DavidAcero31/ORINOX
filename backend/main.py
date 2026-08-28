@@ -13,13 +13,22 @@ from sqlalchemy.orm import Session
 from google import genai
 from google.genai import types
 
-from database import Base, engine, get_db
+from database import engine, get_db
 from models import (
-    User,
-    Product,
-    Buyer,
-    Conversation,
-    Message,
+    Base,
+    Usuario,
+    Productor,
+    Producto,
+    Comprador,
+    PreferenciaComprador,
+    Match,
+    Conversacion,
+    Mensaje,
+    Categoria,
+    MovimientoInventario,
+    ExperienciaTuristica,
+    Reserva,
+    OfertaCultural,
 )
 
 
@@ -50,10 +59,9 @@ client = genai.Client(
 # CREAR TABLAS
 # ==========================================
 
-if engine is not None:
-    Base.metadata.create_all(
-        bind=engine
-    )
+Base.metadata.create_all(
+    bind=engine
+)
 
 
 # ==========================================
@@ -123,11 +131,12 @@ def database_test(
             text("SELECT 1")
         )
 
-        result.scalar()
+        resultado = result.scalar()
 
         return {
             "status": "ok",
             "message": "Conexión con PostgreSQL funcionando",
+            "resultado": resultado,
         }
 
     except Exception as e:
@@ -148,9 +157,9 @@ def obtener_productos(
 ):
 
     productos = (
-        db.query(Product)
+        db.query(Producto)
         .filter(
-            Product.disponible == True
+            Producto.activo == True
         )
         .all()
     )
@@ -160,9 +169,29 @@ def obtener_productos(
     for producto in productos:
 
         productor = (
-            db.query(User)
+            db.query(Productor)
             .filter(
-                User.id == producto.productor_id
+                Productor.id == producto.productor_id
+            )
+            .first()
+        )
+
+        usuario = None
+
+        if productor:
+
+            usuario = (
+                db.query(Usuario)
+                .filter(
+                    Usuario.id == productor.usuario_id
+                )
+                .first()
+            )
+
+        categoria = (
+            db.query(Categoria)
+            .filter(
+                Categoria.id == producto.categoria_id
             )
             .first()
         )
@@ -170,21 +199,48 @@ def obtener_productos(
         resultado.append(
             {
                 "id": producto.id,
+
                 "nombre": producto.nombre,
-                "categoria": producto.categoria,
-                "descripcion": producto.descripcion,
-                "unidad": producto.unidad,
-                "cantidad": producto.cantidad,
-                "precio": producto.precio,
-                "disponible": producto.disponible,
-                "productor": (
-                    productor.nombre
-                    if productor
+
+                "categoria": (
+                    categoria.nombre
+                    if categoria
                     else None
                 ),
+
+                "descripcion": producto.descripcion,
+
+                "unidad": producto.unidad_medida,
+
+                "cantidad": float(
+                    producto.cantidad_disponible
+                ),
+
+                "precio": (
+                    float(producto.precio_unitario)
+                    if producto.precio_unitario is not None
+                    else None
+                ),
+
+                "disponible": producto.activo,
+
+                "imagen_url": producto.imagen_url,
+
+                "productor": (
+                    f"{usuario.nombre} {usuario.apellido}"
+                    if usuario
+                    else None
+                ),
+
                 "municipio": (
-                    productor.municipio
-                    if productor
+                    usuario.municipio
+                    if usuario
+                    else None
+                ),
+
+                "departamento": (
+                    usuario.departamento
+                    if usuario
                     else None
                 ),
             }
@@ -203,13 +259,13 @@ def obtener_compradores(
 ):
 
     compradores = (
-        db.query(Buyer)
+        db.query(Comprador)
         .join(
-            User,
-            Buyer.usuario_id == User.id
+            Usuario,
+            Comprador.usuario_id == Usuario.id
         )
         .filter(
-            User.activo == True
+            Usuario.activo == True
         )
         .all()
     )
@@ -219,31 +275,61 @@ def obtener_compradores(
     for comprador in compradores:
 
         usuario = (
-            db.query(User)
+            db.query(Usuario)
             .filter(
-                User.id == comprador.usuario_id
+                Usuario.id == comprador.usuario_id
             )
             .first()
         )
 
+        preferencias = (
+            db.query(PreferenciaComprador)
+            .filter(
+                PreferenciaComprador.comprador_id
+                == comprador.id,
+                PreferenciaComprador.activa == True
+            )
+            .all()
+        )
+
+        intereses = []
+
+        for preferencia in preferencias:
+
+            intereses.append(
+                preferencia.producto_interes
+            )
+
         resultado.append(
             {
                 "id": comprador.id,
-                "empresa": comprador.empresa,
-                "categoria_interes": (
-                    comprador.categoria_interes
-                ),
-                "ubicacion": comprador.ubicacion,
-                "nombre": (
-                    usuario.nombre
+
+                "empresa": comprador.nombre_negocio,
+
+                "tipo_negocio": comprador.tipo_negocio,
+
+                "descripcion": comprador.descripcion,
+
+                "categoria_interes": intereses,
+
+                "ubicacion": (
+                    usuario.direccion
                     if usuario
                     else None
                 ),
+
+                "nombre": (
+                    f"{usuario.nombre} {usuario.apellido}"
+                    if usuario
+                    else None
+                ),
+
                 "municipio": (
                     usuario.municipio
                     if usuario
                     else None
                 ),
+
                 "departamento": (
                     usuario.departamento
                     if usuario
@@ -256,7 +342,7 @@ def obtener_compradores(
 
 
 # ==========================================
-# CREAR CONVERSACIÓN
+# CREAR / OBTENER CONVERSACIÓN
 # ==========================================
 
 def obtener_conversacion(
@@ -270,24 +356,24 @@ def obtener_conversacion(
     if usuario_id:
 
         conversacion = (
-            db.query(Conversation)
+            db.query(Conversacion)
             .filter(
-                Conversation.usuario_id
-                == usuario_id,
-                Conversation.modulo
-                == modulo,
+                Conversacion.usuario_id
+                == usuario_id
             )
             .order_by(
-                Conversation.id.desc()
+                Conversacion.id.desc()
             )
             .first()
         )
 
     if conversacion is None:
 
-        conversacion = Conversation(
+        # La tabla conversaciones actual
+        # no tiene columna modulo.
+        conversacion = Conversacion(
             usuario_id=usuario_id,
-            modulo=modulo,
+            titulo=f"Conversación - {modulo}",
         )
 
         db.add(conversacion)
@@ -297,6 +383,204 @@ def obtener_conversacion(
         db.refresh(conversacion)
 
     return conversacion
+
+
+# ==========================================
+# CONSTRUIR CONTEXTO DE PRODUCTOS
+# ==========================================
+
+def obtener_contexto_productos(
+    db: Session
+):
+
+    productos = (
+        db.query(Producto)
+        .filter(
+            Producto.activo == True
+        )
+        .limit(20)
+        .all()
+    )
+
+    contexto = ""
+
+    for producto in productos:
+
+        productor = (
+            db.query(Productor)
+            .filter(
+                Productor.id
+                == producto.productor_id
+            )
+            .first()
+        )
+
+        usuario = None
+
+        if productor:
+
+            usuario = (
+                db.query(Usuario)
+                .filter(
+                    Usuario.id
+                    == productor.usuario_id
+                )
+                .first()
+            )
+
+        categoria = (
+            db.query(Categoria)
+            .filter(
+                Categoria.id
+                == producto.categoria_id
+            )
+            .first()
+        )
+
+        cantidad = producto.cantidad_disponible
+
+        precio = producto.precio_unitario
+
+        contexto += (
+            f"- Producto: {producto.nombre}\n"
+            f"  Categoría: "
+            f"{categoria.nombre if categoria else 'No especificada'}\n"
+            f"  Cantidad: "
+            f"{cantidad} "
+            f"{producto.unidad_medida}\n"
+            f"  Precio: "
+            f"${float(precio):,.0f} COP\n"
+            f"  Productor: "
+            f"{usuario.nombre if usuario else 'No disponible'}\n"
+            f"  Municipio: "
+            f"{usuario.municipio if usuario else 'No disponible'}\n"
+            f"\n"
+        )
+
+    if not contexto:
+
+        contexto = (
+            "No existen productos disponibles "
+            "registrados actualmente."
+        )
+
+    return contexto
+
+
+# ==========================================
+# CONSTRUIR CONTEXTO DE COMPRADORES
+# ==========================================
+
+def obtener_contexto_compradores(
+    db: Session
+):
+
+    compradores = (
+        db.query(Comprador)
+        .join(
+            Usuario,
+            Comprador.usuario_id == Usuario.id
+        )
+        .filter(
+            Usuario.activo == True
+        )
+        .limit(20)
+        .all()
+    )
+
+    contexto = ""
+
+    for comprador in compradores:
+
+        usuario = (
+            db.query(Usuario)
+            .filter(
+                Usuario.id
+                == comprador.usuario_id
+            )
+            .first()
+        )
+
+        preferencias = (
+            db.query(PreferenciaComprador)
+            .filter(
+                PreferenciaComprador.comprador_id
+                == comprador.id,
+                PreferenciaComprador.activa == True
+            )
+            .all()
+        )
+
+        intereses = []
+
+        for preferencia in preferencias:
+
+            if preferencia.producto_interes:
+
+                intereses.append(
+                    preferencia.producto_interes
+                )
+
+        contexto += (
+            f"- Empresa: "
+            f"{comprador.nombre_negocio or 'No especificada'}\n"
+            f"  Tipo de negocio: "
+            f"{comprador.tipo_negocio or 'No especificado'}\n"
+            f"  Productos de interés: "
+            f"{', '.join(intereses) if intereses else 'No especificados'}\n"
+            f"  Contacto: "
+            f"{usuario.nombre if usuario else 'No disponible'}\n"
+            f"  Municipio: "
+            f"{usuario.municipio if usuario else 'No disponible'}\n"
+            f"  Departamento: "
+            f"{usuario.departamento if usuario else 'No disponible'}\n"
+            f"\n"
+        )
+
+    if not contexto:
+
+        contexto = (
+            "No existen compradores activos "
+            "registrados actualmente."
+        )
+
+    return contexto
+
+
+# ==========================================
+# HISTORIAL DE CONVERSACIÓN
+# ==========================================
+
+def obtener_historial(
+    db: Session,
+    conversacion_id: int
+):
+
+    mensajes = (
+        db.query(Mensaje)
+        .filter(
+            Mensaje.conversacion_id
+            == conversacion_id
+        )
+        .order_by(
+            Mensaje.id.desc()
+        )
+        .limit(10)
+        .all()
+    )
+
+    mensajes.reverse()
+
+    historial = ""
+
+    for mensaje in mensajes:
+
+        historial += (
+            f"{mensaje.rol}: "
+            f"{mensaje.contenido}\n"
+        )
+
+    return historial
 
 
 # ==========================================
@@ -324,7 +608,7 @@ def chat(
     # GUARDAR MENSAJE DEL USUARIO
     # ======================================
 
-    mensaje_usuario = Message(
+    mensaje_usuario = Mensaje(
         conversacion_id=conversacion.id,
         rol="user",
         contenido=request.mensaje,
@@ -336,135 +620,21 @@ def chat(
 
 
     # ======================================
-    # OBTENER PRODUCTOS
+    # DATOS DE POSTGRESQL
     # ======================================
 
-    productos = (
-        db.query(Product)
-        .filter(
-            Product.disponible == True
-        )
-        .limit(20)
-        .all()
+    productos_contexto = obtener_contexto_productos(
+        db
     )
 
-
-    productos_contexto = ""
-
-    for producto in productos:
-
-        productor = (
-            db.query(User)
-            .filter(
-                User.id
-                == producto.productor_id
-            )
-            .first()
-        )
-
-        productos_contexto += (
-            f"- Producto: {producto.nombre}\n"
-            f"  Categoría: {producto.categoria}\n"
-            f"  Cantidad: {producto.cantidad} "
-            f"{producto.unidad}\n"
-            f"  Precio: "
-            f"${producto.precio:,.0f} COP\n"
-            f"  Productor: "
-            f"{productor.nombre if productor else 'No disponible'}\n"
-            f"  Municipio: "
-            f"{productor.municipio if productor else 'No disponible'}\n"
-            f"\n"
-        )
-
-
-    if not productos_contexto:
-
-        productos_contexto = (
-            "No existen productos disponibles "
-            "registrados actualmente."
-        )
-
-
-    # ======================================
-    # OBTENER COMPRADORES
-    # ======================================
-
-    compradores = (
-        db.query(Buyer)
-        .join(
-            User,
-            Buyer.usuario_id == User.id
-        )
-        .filter(
-            User.activo == True
-        )
-        .limit(20)
-        .all()
+    compradores_contexto = obtener_contexto_compradores(
+        db
     )
 
-
-    compradores_contexto = ""
-
-    for comprador in compradores:
-
-        usuario = (
-            db.query(User)
-            .filter(
-                User.id
-                == comprador.usuario_id
-            )
-            .first()
-        )
-
-        compradores_contexto += (
-            f"- Empresa: "
-            f"{comprador.empresa or 'No especificada'}\n"
-            f"  Categoría de interés: "
-            f"{comprador.categoria_interes or 'No especificada'}\n"
-            f"  Ubicación: "
-            f"{comprador.ubicacion or 'No especificada'}\n"
-            f"  Contacto: "
-            f"{usuario.nombre if usuario else 'No disponible'}\n"
-            f"\n"
-        )
-
-
-    if not compradores_contexto:
-
-        compradores_contexto = (
-            "No existen compradores activos "
-            "registrados actualmente."
-        )
-
-
-    # ======================================
-    # HISTORIAL DE CONVERSACIÓN
-    # ======================================
-
-    mensajes_previos = (
-        db.query(Message)
-        .filter(
-            Message.conversacion_id
-            == conversacion.id
-        )
-        .order_by(
-            Message.id.desc()
-        )
-        .limit(10)
-        .all()
+    historial = obtener_historial(
+        db,
+        conversacion.id
     )
-
-    mensajes_previos.reverse()
-
-
-    historial = ""
-
-    for mensaje in mensajes_previos:
-
-        historial += (
-            f"{mensaje.rol}: "
-            f"{mensaje.contenido}\n"
-        )
 
 
     # ======================================
@@ -514,7 +684,7 @@ REGLAS:
 4. No inventes compradores, precios, reservas,
    productores o datos.
 5. Los datos proporcionados desde PostgreSQL
-   representan información de la plataforma.
+   representan información real de la plataforma.
 6. Utiliza los datos de PostgreSQL cuando
    respondas preguntas relacionadas con ellos.
 7. Si un dato no existe en PostgreSQL,
@@ -578,6 +748,8 @@ utiliza los datos reales proporcionados.
 
 Si la información solicitada no está disponible,
 indícalo claramente.
+
+No inventes datos.
 """
 
 
@@ -616,10 +788,11 @@ indícalo claramente.
     # GUARDAR RESPUESTA DE IA
     # ======================================
 
-    mensaje_ia = Message(
+    mensaje_ia = Mensaje(
         conversacion_id=conversacion.id,
         rol="assistant",
         contenido=respuesta,
+        modelo_ia="gemini-3.6-flash",
     )
 
     db.add(mensaje_ia)

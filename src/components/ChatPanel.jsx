@@ -144,6 +144,7 @@ export default function ChatPanel({ reserveComposerSpace }) {
         body: JSON.stringify({
           mensaje: message,
           modulo: "productivo",
+          usuario_id: 1,
         }),
       });
 
